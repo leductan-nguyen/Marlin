@@ -283,7 +283,7 @@
  *    66 : 4.7M High Temperature thermistor from Dyze Design
  *    70 : the 100K thermistor found in the bq Hephestos 2
  *    75 : 100k Generic Silicon Heat Pad with NTC 100K MGB18-104F39050L32 thermistor
- *
+ *    80 : 3D Raion thermistor
  *       1k ohm pullup tables - This is atypical, and requires changing out the 4.7k pullup for 1k.
  *                              (but gives greater accuracy and more stable PID)
  *    51 : 100k thermistor - EPCOS (1k pullup)
