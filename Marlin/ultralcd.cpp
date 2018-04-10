@@ -634,8 +634,9 @@ uint16_t max_display_update_time = 0;
       screen_changed = false;
     }
     if (screen_items > 0 && encoderLine >= screen_items - limit) {
-  #if ENABLED(CONTINUOUS_MENU_SCROLL) && ENABLED(is_menu)
-      encoderLine = 0;
+  #if ENABLED(CONTINUOUS_MENU_SCROLL)
+      if (encoderLine > screen_items) 
+         encoderLine = 0;
   #else
       encoderLine = max(0, screen_items - limit);
   #endif
