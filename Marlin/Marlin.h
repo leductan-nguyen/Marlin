@@ -408,19 +408,19 @@ void report_current_position();
 #endif
 
 #if FAN_COUNT > 0
-  extern int16_t fanSpeeds[FAN_COUNT];
+  extern uint16_t fanSpeeds[FAN_COUNT];
   #if ENABLED(EXTRA_FAN_SPEED)
-    extern int16_t old_fanSpeeds[FAN_COUNT],
+    extern uint16_t old_fanSpeeds[FAN_COUNT],
                    new_fanSpeeds[FAN_COUNT];
   #endif
   #if ENABLED(PROBING_FANS_OFF)
     extern bool fans_paused;
-    extern int16_t paused_fanSpeeds[FAN_COUNT];
+    extern uint16_t paused_fanSpeeds[FAN_COUNT];
   #endif
 #endif
 
 #if ENABLED(USE_CONTROLLER_FAN)
-  extern int controllerFanSpeed;
+  extern uint controllerFanSpeed;
 #endif
 
 #if ENABLED(BARICUDA)

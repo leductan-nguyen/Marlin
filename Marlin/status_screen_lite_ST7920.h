@@ -675,7 +675,7 @@ bool ST7920_Lite_Status_Screen::indicators_changed() {
   // them only during blinks we gain a bit of stability.
   const bool       blink             = lcd_blink();
   const uint8_t    feedrate_perc     = feedrate_percentage;
-  const uint8_t    fan_speed         = ((fanSpeeds[0] + 1) * 100) / 256;
+  const uint8_t    fan_speed         = fanSpeeds[0];
   const int16_t    extruder_1_target = thermalManager.degTargetHotend(0);
   #if EXTRUDERS == 2
     const int16_t  extruder_2_target = thermalManager.degTargetHotend(1);
@@ -702,7 +702,7 @@ void ST7920_Lite_Status_Screen::update_indicators(const bool forceUpdate) {
     const bool       blink             = lcd_blink();
     const duration_t elapsed           = print_job_timer.duration();
     const uint8_t    feedrate_perc     = feedrate_percentage;
-    const uint8_t    fan_speed         = ((fanSpeeds[0] + 1) * 100) / 256;
+    const uint8_t    fan_speed         = fanSpeeds[0];
     const int16_t    extruder_1_temp   = thermalManager.degHotend(0),
                      extruder_1_target = thermalManager.degTargetHotend(0);
     #if EXTRUDERS == 2
