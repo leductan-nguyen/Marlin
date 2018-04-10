@@ -483,7 +483,7 @@ void Planner::check_axes_activity() {
   }
   else {
     #if FAN_COUNT > 0
-      for (uint8_t i = 0; i < FAN_COUNT; i++) tail_fan_speed[i] = fanSpeeds[i];
+      for (uint8_t i = 0; i < FAN_COUNT; i++) tail_fan_speed[i] = round(fanSpeeds[i]*255/100);
     #endif
 
     #if ENABLED(BARICUDA)

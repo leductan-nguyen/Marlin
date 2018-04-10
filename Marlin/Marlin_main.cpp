@@ -483,19 +483,19 @@ float soft_endstop_min[XYZ] = { X_MIN_BED, Y_MIN_BED, Z_MIN_POS },
 #endif
 
 #if FAN_COUNT > 0
-  int16_t fanSpeeds[FAN_COUNT] = { 0 };
+  uint16_t fanSpeeds[FAN_COUNT] = { 0 };
   #if ENABLED(EXTRA_FAN_SPEED)
-    int16_t old_fanSpeeds[FAN_COUNT],
+    uint16_t old_fanSpeeds[FAN_COUNT],
             new_fanSpeeds[FAN_COUNT];
   #endif
   #if ENABLED(PROBING_FANS_OFF)
     bool fans_paused; // = false;
-    int16_t paused_fanSpeeds[FAN_COUNT] = { 0 };
+    uint16_t paused_fanSpeeds[FAN_COUNT] = { 0 };
   #endif
 #endif
 
 #if ENABLED(USE_CONTROLLER_FAN)
-  int controllerFanSpeed; // = 0;
+  uint controllerFanSpeed; // = 0;
 #endif
 
 // The active extruder (tool). Set with T<extruder> command.
@@ -7748,7 +7748,7 @@ inline void gcode_M105() {
     const uint8_t p = parser.byteval('P');
     if (p < FAN_COUNT) {
       #if ENABLED(EXTRA_FAN_SPEED)
-        const int16_t t = parser.intval('T');
+        const uint16_t t = parser.ushortval('T');
         if (t > 0) {
           switch (t) {
             case 1:
