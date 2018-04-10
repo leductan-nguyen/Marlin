@@ -185,6 +185,7 @@ uint16_t max_display_update_time = 0;
   void lcd_move_menu();
   void lcd_control_menu();
   void lcd_control_temperature_menu();
+  void lcd_control_flow_menu();
   void lcd_control_motion_menu();
 
   #if DISABLED(SLIM_LCD_MENUS)
@@ -633,7 +634,11 @@ uint16_t max_display_update_time = 0;
       screen_changed = false;
     }
     if (screen_items > 0 && encoderLine >= screen_items - limit) {
+  #if ENABLED(CONTINUOUS_MENU_SCROLL) && ENABLED(is_menu)
+      encoderLine = 0;
+  #else
       encoderLine = max(0, screen_items - limit);
+  #endif
       encoderPosition = encoderLine * (ENCODER_STEPS_PER_MENU_ITEM);
     }
     if (is_menu) {
@@ -1033,8 +1038,14 @@ void kill_screen(const char* lcd_msg) {
       else
         MENU_ITEM_EDIT_CALLBACK(bool, MSG_CASE_LIGHT, (bool*)&case_light_on, update_case_light);
     #endif
-
-    if (planner.movesplanned() || IS_SD_PRINTING) {
+    MENU_ITEM(submenu, MSG_TUNE,
+      #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+        _lcd_goto_tune_menu
+      #else
+        lcd_tune_menu
+      #endif
+    );
+    /*if (planner.movesplanned() || IS_SD_PRINTING) {
       MENU_ITEM(submenu, MSG_TUNE,
         #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
           _lcd_goto_tune_menu
@@ -1046,7 +1057,7 @@ void kill_screen(const char* lcd_msg) {
     else {
       MENU_ITEM(submenu, MSG_PREPARE, lcd_prepare_menu);
     }
-    MENU_ITEM(submenu, MSG_CONTROL, lcd_control_menu);
+    MENU_ITEM(submenu, MSG_CONTROL, lcd_control_menu);*/
 
     #if ENABLED(SDSUPPORT)
       if (card.cardOK) {
@@ -1325,11 +1336,70 @@ void kill_screen(const char* lcd_msg) {
     //
     MENU_BACK(MSG_MAIN);
 
-    //
-    // Speed:
-    //
-    MENU_ITEM_EDIT(int3, MSG_SPEED, &feedrate_percentage, 10, 999);
-
+    // if printing
+    MENU_ITEM(submenu, MSG_TEMPERATURE, lcd_control_temperature_menu);
+    if (planner.movesplanned() || IS_SD_PRINTING) {
+      MENU_ITEM(submenu, MSG_TEMPERATURE, lcd_control_flow_menu);
+      #if ENABLED(FWRETRACT)
+        MENU_ITEM(submenu, MSG_RETRACT, lcd_control_retract_menu);
+      #endif
+      //
+      // Fan Speed:
+      //
+      #if FAN_COUNT > 0
+        #if HAS_FAN0
+          MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED FAN_SPEED_1_SUFFIX, &fanSpeeds[0], 0, 100);
+          #if ENABLED(EXTRA_FAN_SPEED)
+            MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_EXTRA_FAN_SPEED FAN_SPEED_1_SUFFIX, &new_fanSpeeds[0], 3, 100);
+          #endif
+        #endif
+        #if HAS_FAN1
+          MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 2", &fanSpeeds[1], 0, 100);
+          #if ENABLED(EXTRA_FAN_SPEED)
+            MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_EXTRA_FAN_SPEED " 2", &new_fanSpeeds[1], 3, 100);
+          #endif
+        #endif
+        #if HAS_FAN2
+          MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 3", &fanSpeeds[2], 0, 100);
+          #if ENABLED(EXTRA_FAN_SPEED)
+            MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_EXTRA_FAN_SPEED " 3", &new_fanSpeeds[2], 3, 100);
+          #endif
+        #endif
+      #endif // FAN_COUNT > 0
+      //
+      // Speed:
+      //
+      MENU_ITEM_EDIT(int3, MSG_SPEED, &feedrate_percentage, 10, 999);
+    }
+    else {
+      //
+      // Homing
+      //
+      MENU_ITEM(gcode, MSG_AUTO_HOME, PSTR("G28"));
+      MENU_ITEM(submenu, MSG_MOVE_AXIS, lcd_move_menu);
+      //
+      // Disable Steppers
+      //
+      MENU_ITEM(gcode, MSG_DISABLE_STEPPERS, PSTR("M84"));
+      //
+      // Babystep X:
+      // Babystep Y:
+      // Babystep Z:
+      //
+      #if ENABLED(BABYSTEPPING)
+        #if ENABLED(BABYSTEP_XY)
+          MENU_ITEM(submenu, MSG_BABYSTEP_X, lcd_babystep_x);
+          MENU_ITEM(submenu, MSG_BABYSTEP_Y, lcd_babystep_y);
+        #endif
+        #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
+          MENU_ITEM(submenu, MSG_ZPROBE_ZOFFSET, lcd_babystep_zoffset);
+        #else
+          MENU_ITEM(submenu, MSG_BABYSTEP_Z, lcd_babystep_z);
+        #endif
+      #endif
+    }
+    
+    /*
     // Manual bed leveling, Bed Z:
     #if ENABLED(MESH_BED_LEVELING) && ENABLED(LCD_BED_LEVELING)
       MENU_ITEM_EDIT(float43, MSG_BED_Z, &mbl.z_offset, -1, 1);
@@ -1364,34 +1434,13 @@ void kill_screen(const char* lcd_msg) {
       MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_BED, &thermalManager.target_temperature_bed, 0, BED_MAXTEMP - 15, watch_temp_callback_bed);
     #endif
 
-    //
-    // Fan Speed:
-    //
-    #if FAN_COUNT > 0
-      #if HAS_FAN0
-        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED FAN_SPEED_1_SUFFIX, &fanSpeeds[0], 0, 100);
-        #if ENABLED(EXTRA_FAN_SPEED)
-          MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_EXTRA_FAN_SPEED FAN_SPEED_1_SUFFIX, &new_fanSpeeds[0], 3, 100);
-        #endif
-      #endif
-      #if HAS_FAN1
-        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 2", &fanSpeeds[1], 0, 100);
-        #if ENABLED(EXTRA_FAN_SPEED)
-          MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_EXTRA_FAN_SPEED " 2", &new_fanSpeeds[1], 3, 100);
-        #endif
-      #endif
-      #if HAS_FAN2
-        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 3", &fanSpeeds[2], 0, 100);
-        #if ENABLED(EXTRA_FAN_SPEED)
-          MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_EXTRA_FAN_SPEED " 3", &new_fanSpeeds[2], 3, 100);
-        #endif
-      #endif
-    #endif // FAN_COUNT > 0
+    
 
     //
     // Flow:
     // Flow [1-5]:
     //
+    
     #if EXTRUDERS == 1
       MENU_ITEM_EDIT_CALLBACK(int3, MSG_FLOW, &planner.flow_percentage[0], 10, 999, _lcd_refresh_e_factor_0);
     #else // EXTRUDERS > 1
@@ -1408,6 +1457,7 @@ void kill_screen(const char* lcd_msg) {
         #endif // EXTRUDERS > 3
       #endif // EXTRUDERS > 2
     #endif // EXTRUDERS > 1
+    
 
     //
     // Babystep X:
@@ -1439,7 +1489,7 @@ void kill_screen(const char* lcd_msg) {
         MENU_ITEM(submenu, MSG_FILAMENTCHANGE, lcd_change_filament_menu);
       #endif
     #endif
-
+    */
     END_MENU();
   }
 
@@ -3338,19 +3388,56 @@ void kill_screen(const char* lcd_msg) {
     #endif // PID_PARAMS_PER_HOTEND
 
   #endif // PIDTEMP
+  
+  /**
+   *
+   * "Tune" > "Flow" submenu
+   *
+   */
+  void lcd_control_flow_menu() {
+    START_MENU();
+
+    //
+    // ^ Tune
+    //
+    MENU_BACK(MSG_TUNE);
+
+    // Flow:
+    // Flow [1-5]:
+    //
+    
+    #if EXTRUDERS == 1
+      MENU_ITEM_EDIT_CALLBACK(int3, MSG_FLOW, &planner.flow_percentage[0], 10, 999, _lcd_refresh_e_factor_0);
+    #else // EXTRUDERS > 1
+      MENU_ITEM_EDIT_CALLBACK(int3, MSG_FLOW, &planner.flow_percentage[active_extruder], 10, 999, _lcd_refresh_e_factor);
+      MENU_ITEM_EDIT_CALLBACK(int3, MSG_FLOW MSG_N1, &planner.flow_percentage[0], 10, 999, _lcd_refresh_e_factor_0);
+      MENU_ITEM_EDIT_CALLBACK(int3, MSG_FLOW MSG_N2, &planner.flow_percentage[1], 10, 999, _lcd_refresh_e_factor_1);
+      #if EXTRUDERS > 2
+        MENU_ITEM_EDIT_CALLBACK(int3, MSG_FLOW MSG_N3, &planner.flow_percentage[2], 10, 999, _lcd_refresh_e_factor_2);
+        #if EXTRUDERS > 3
+          MENU_ITEM_EDIT_CALLBACK(int3, MSG_FLOW MSG_N4, &planner.flow_percentage[3], 10, 999, _lcd_refresh_e_factor_3);
+          #if EXTRUDERS > 4
+            MENU_ITEM_EDIT_CALLBACK(int3, MSG_FLOW MSG_N5, &planner.flow_percentage[4], 10, 999, _lcd_refresh_e_factor_4);
+          #endif // EXTRUDERS > 4
+        #endif // EXTRUDERS > 3
+      #endif // EXTRUDERS > 2
+    #endif // EXTRUDERS > 1
+
+    END_MENU();
+  }
 
   /**
    *
-   * "Control" > "Temperature" submenu
+   * "Tune" > "Temperature" submenu
    *
    */
   void lcd_control_temperature_menu() {
     START_MENU();
 
     //
-    // ^ Control
+    // ^ Tune
     //
-    MENU_BACK(MSG_CONTROL);
+    MENU_BACK(MSG_TUNE);
 
     //
     // Nozzle:
@@ -3814,14 +3901,14 @@ void kill_screen(const char* lcd_msg) {
 
   /**
    *
-   * "Control" > "Retract" submenu
+   * "Tune" > "Retract" submenu
    *
    */
   #if ENABLED(FWRETRACT)
 
     void lcd_control_retract_menu() {
       START_MENU();
-      MENU_BACK(MSG_CONTROL);
+      MENU_BACK(MSG_TUNE);
       MENU_ITEM_EDIT_CALLBACK(bool, MSG_AUTORETRACT, &fwretract.autoretract_enabled, fwretract.refresh_autoretract);
       MENU_ITEM_EDIT(float52, MSG_CONTROL_RETRACT, &fwretract.retract_length, 0, 100);
       #if EXTRUDERS > 1

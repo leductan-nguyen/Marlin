@@ -1399,7 +1399,7 @@
 //
 //  Set this option if CLOCKWISE causes values to DECREASE
 //
-//#define REVERSE_ENCODER_DIRECTION
+#define REVERSE_ENCODER_DIRECTION
 
 //
 // This option reverses the encoder direction for navigating LCD menus.
@@ -1408,6 +1408,12 @@
 //  If CLOCKWISE normally moves UP this makes it go DOWN.
 //
 //#define REVERSE_MENU_DIRECTION
+
+//
+// This option enable the screen to come back at the start position after
+// we scroll pass the last item in the menu
+//
+#define CONTINUOUS_MENU_SCROLL
 
 //
 // Individual Axis Homing
