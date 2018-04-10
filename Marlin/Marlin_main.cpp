@@ -13547,11 +13547,19 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
 
     // Exceeded threshold and we can confirm that it was not accidental
     // KILL the machine
+  	// If CONVENIENT_PAUSE_BUTTON is defined, a pause is performed
     // ----------------------------------------------------------------
     if (killCount >= KILL_DELAY) {
+  	#if ENABLED(CONVENIENT_PAUSE_BUTTON)
+      SERIAL_ECHO_START();
+      SERIAL_ECHOLNPGM(MSG_BUSY_PAUSED_FOR_USER);
+      if (!did_pause_print) gcode_M125(); // bypassed the buffer, pause if not already paused
+      else gcode_M24();
+    #else
       SERIAL_ERROR_START();
       SERIAL_ERRORLNPGM(MSG_KILL_BUTTON);
       kill(PSTR(MSG_KILLED));
+    #endif
     }
   #endif
 
