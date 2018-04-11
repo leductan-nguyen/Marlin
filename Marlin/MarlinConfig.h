@@ -27,6 +27,7 @@
 #include "macros.h"
 #include "boards.h"
 #include "Version.h"
+#include CONFIG_INCLUDE
 #include "Configuration.h"
 #include "Conditionals_LCD.h"
 #include "Configuration_adv.h"
