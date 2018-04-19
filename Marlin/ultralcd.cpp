@@ -168,10 +168,6 @@ uint16_t max_display_update_time = 0;
     #define TALL_FONT_CORRECTION 0
   #endif
 
-  #if HAS_POWER_SWITCH
-    extern bool powersupply_on;
-  #endif
-
   bool no_reentry = false;
   constexpr int8_t menu_bottom = LCD_HEIGHT - (TALL_FONT_CORRECTION);
 
@@ -835,20 +831,10 @@ void kill_screen(const char* lcd_msg) {
       lcd_reset_status();
     }
 
+    bool abort_sd_printing; // =false
+
     void lcd_sdcard_stop() {
-      card.stopSDPrint(
-        #if SD_RESORT
-          true
-        #endif
-      );
-      clear_command_queue();
-      quickstop_stepper();
-      print_job_timer.stop();
-      thermalManager.disable_all_heaters();
-      #if FAN_COUNT > 0
-        for (uint8_t i = 0; i < FAN_COUNT; i++) fanSpeeds[i] = 0;
-      #endif
-      wait_for_heatup = false;
+      abort_sd_printing = true;
       lcd_setstatusPGM(PSTR(MSG_PRINT_ABORTED), -1);
       lcd_return_to_status();
     }
@@ -2986,14 +2972,16 @@ void kill_screen(const char* lcd_msg) {
       const float diff = float((int32_t)encoderPosition) * move_menu_scale;
       #if IS_KINEMATIC
         manual_move_offset += diff;
-        // Limit only when trying to move towards the limit
-        if ((int32_t)encoderPosition < 0) NOLESS(manual_move_offset, min - current_position[axis]);
-        if ((int32_t)encoderPosition > 0) NOMORE(manual_move_offset, max - current_position[axis]);
+        if ((int32_t)encoderPosition < 0)
+          NOLESS(manual_move_offset, min - current_position[axis]);
+        else
+          NOMORE(manual_move_offset, max - current_position[axis]);
       #else
         current_position[axis] += diff;
-        // Limit only when trying to move towards the limit
-        if ((int32_t)encoderPosition < 0) NOLESS(current_position[axis], min);
-        if ((int32_t)encoderPosition > 0) NOMORE(current_position[axis], max);
+        if ((int32_t)encoderPosition < 0)
+          NOLESS(current_position[axis], min);
+        else
+          NOMORE(current_position[axis], max);
       #endif
 
       manual_move_to_current(axis);

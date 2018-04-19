@@ -2461,7 +2461,21 @@ void clean_up_after_endstop_or_probe_move() {
             planner.unapply_leveling(current_position);
           }
         #else
-          planner.leveling_active = enable;                    // just flip the bit, current_position will be wrong until next move.
+          // UBL equivalents for apply/unapply_leveling
+          #if ENABLED(SKEW_CORRECTION)
+            float pos[XYZ] = { current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS] };
+            planner.skew(pos[X_AXIS], pos[Y_AXIS], pos[Z_AXIS]);
+          #else
+            const float (&pos)[XYZE] = current_position;
+          #endif
+          if (planner.leveling_active) {
+            current_position[Z_AXIS] += ubl.get_z_correction(pos[X_AXIS], pos[Y_AXIS]);
+            planner.leveling_active = false;
+          }
+          else {
+            planner.leveling_active = true;
+            current_position[Z_AXIS] -= ubl.get_z_correction(pos[X_AXIS], pos[Y_AXIS]);
+          }
         #endif
 
       #else // ABL
@@ -4259,7 +4273,7 @@ void home_all_axes() { gcode_G28(true); }
             enable_soft_endstops = soft_endstops_enabled;
           #endif
           // Move close to the bed before the first point
-          do_blocking_move_to_z(Z_MIN_POS);
+          do_blocking_move_to_z(0);
         }
         else {
           // For G29 S2 after adjusting Z.
@@ -4281,7 +4295,7 @@ void home_all_axes() { gcode_G28(true); }
         }
         else {
           // One last "return to the bed" (as originally coded) at completion
-          current_position[Z_AXIS] = Z_MIN_POS + MANUAL_PROBE_HEIGHT;
+          current_position[Z_AXIS] = MANUAL_PROBE_HEIGHT;
           buffer_line_to_current_position();
           stepper.synchronize();
 
@@ -4295,7 +4309,7 @@ void home_all_axes() { gcode_G28(true); }
           set_bed_leveling_enabled(true);
 
           #if ENABLED(MESH_G28_REST_ORIGIN)
-            current_position[Z_AXIS] = Z_MIN_POS;
+            current_position[Z_AXIS] = 0;
             set_destination_from_current();
             buffer_line_to_destination(homing_feedrate(Z_AXIS));
             stepper.synchronize();
@@ -4794,7 +4808,7 @@ void home_all_axes() { gcode_G28(true); }
           enable_soft_endstops = soft_endstops_enabled;
         #endif
         // Move close to the bed before the first point
-        do_blocking_move_to_z(Z_MIN_POS);
+        do_blocking_move_to_z(0);
       }
       else {
 
@@ -9327,6 +9341,14 @@ inline void gcode_M221() {
     planner.flow_percentage[target_extruder] = parser.value_int();
     planner.refresh_e_factor(target_extruder);
   }
+  else {
+    SERIAL_ECHO_START();
+    SERIAL_CHAR('E');
+    SERIAL_CHAR('0' + target_extruder);
+    SERIAL_ECHOPAIR(" Flow: ", planner.flow_percentage[target_extruder]);
+    SERIAL_CHAR('%');
+    SERIAL_EOL();
+  }
 }
 
 /**
@@ -9904,6 +9926,7 @@ void quickstop_stepper() {
    * With AUTO_BED_LEVELING_UBL only:
    *
    *   L[index]  Load UBL mesh from index (0 is default)
+   *   T[map]    0:Human-readable 1:CSV 2:"LCD" 4:Compact
    */
   inline void gcode_M420() {
 
@@ -9942,7 +9965,7 @@ void quickstop_stepper() {
 
       // L to load a mesh from the EEPROM
       if (parser.seen('L') || parser.seen('V')) {
-        ubl.display_map(0);  // Currently only supports one map type
+        ubl.display_map(parser.byteval('T'));  // 0=
         SERIAL_ECHOLNPAIR("ubl.mesh_is_valid = ", ubl.mesh_is_valid());
         SERIAL_ECHOLNPAIR("ubl.storage_slot = ", ubl.storage_slot);
       }
@@ -10073,6 +10096,7 @@ void quickstop_stepper() {
    * Usage:
    *   M421 I<xindex> J<yindex> Z<linear>
    *   M421 I<xindex> J<yindex> Q<offset>
+   *   M421 I<xindex> J<yindex> N
    *   M421 C Z<linear>
    *   M421 C Q<offset>
    */
@@ -10081,6 +10105,7 @@ void quickstop_stepper() {
     const bool hasI = ix >= 0,
                hasJ = iy >= 0,
                hasC = parser.seen('C'),
+               hasN = parser.seen('N'),
                hasZ = parser.seen('Z'),
                hasQ = !hasZ && parser.seen('Q');
 
@@ -10090,7 +10115,7 @@ void quickstop_stepper() {
       iy = location.y_index;
     }
 
-    if (int(hasC) + int(hasI && hasJ) != 1 || !(hasZ || hasQ)) {
+    if (int(hasC) + int(hasI && hasJ) != 1 || !(hasZ || hasQ || hasN)) {
       SERIAL_ERROR_START();
       SERIAL_ERRORLNPGM(MSG_ERR_M421_PARAMETERS);
     }
@@ -10099,7 +10124,7 @@ void quickstop_stepper() {
       SERIAL_ERRORLNPGM(MSG_ERR_MESH_XY);
     }
     else
-      ubl.z_values[ix][iy] = parser.value_linear_units() + (hasQ ? ubl.z_values[ix][iy] : 0);
+      ubl.z_values[ix][iy] = hasN ? NAN : parser.value_linear_units() + (hasQ ? ubl.z_values[ix][iy] : 0);
   }
 
 #endif // AUTO_BED_LEVELING_UBL
@@ -10541,7 +10566,7 @@ inline void gcode_M502() {
 
     // Restore Z axis
     if (park_point.z > 0)
-      do_blocking_move_to_z(max(current_position[Z_AXIS] - park_point.z, Z_MIN_POS), NOZZLE_PARK_Z_FEEDRATE);
+      do_blocking_move_to_z(max(current_position[Z_AXIS] - park_point.z, 0), NOZZLE_PARK_Z_FEEDRATE);
 
     #if EXTRUDERS > 1
       // Restore toolhead if it was changed
@@ -10614,7 +10639,7 @@ inline void gcode_M502() {
 
     // Restore Z axis
     if (park_point.z > 0)
-      do_blocking_move_to_z(max(current_position[Z_AXIS] - park_point.z, Z_MIN_POS), NOZZLE_PARK_Z_FEEDRATE);
+      do_blocking_move_to_z(max(current_position[Z_AXIS] - park_point.z, 0), NOZZLE_PARK_Z_FEEDRATE);
 
     #if EXTRUDERS > 1
       // Restore toolhead if it was changed
@@ -14220,6 +14245,7 @@ void setup() {
 /**
  * The main Marlin program loop
  *
+ *  - Abort SD printing if flagged
  *  - Save or log commands to SD
  *  - Process available commands (if not saving)
  *  - Call heater manager
@@ -14228,11 +14254,33 @@ void setup() {
  *  - Call LCD update
  */
 void loop() {
-  if (commands_in_queue < BUFSIZE) get_available_commands();
 
   #if ENABLED(SDSUPPORT)
+
     card.checkautostart(false);
-  #endif
+
+    #if ENABLED(ULTIPANEL)
+      if (abort_sd_printing) {
+        abort_sd_printing = false;
+        card.stopSDPrint(
+          #if SD_RESORT
+            true
+          #endif
+        );
+        clear_command_queue();
+        quickstop_stepper();
+        print_job_timer.stop();
+        thermalManager.disable_all_heaters();
+        #if FAN_COUNT > 0
+          for (uint8_t i = 0; i < FAN_COUNT; i++) fanSpeeds[i] = 0;
+        #endif
+        wait_for_heatup = false;
+      }
+    #endif
+
+  #endif // SDSUPPORT
+
+  if (commands_in_queue < BUFSIZE) get_available_commands();
 
   if (commands_in_queue) {
 
