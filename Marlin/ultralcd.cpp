@@ -183,7 +183,7 @@ uint16_t max_display_update_time = 0;
   void lcd_control_temperature_menu();
   void lcd_control_flow_menu();
   void lcd_control_motion_menu();
-
+  void lcd_cooldown();
   #if DISABLED(SLIM_LCD_MENUS)
     void lcd_control_temperature_preheat_material1_settings_menu();
     void lcd_control_temperature_preheat_material2_settings_menu();
@@ -1318,7 +1318,7 @@ void kill_screen(const char* lcd_msg) {
     // if printing
     MENU_ITEM(submenu, MSG_TEMPERATURE, lcd_control_temperature_menu);
     if (planner.movesplanned() || IS_SD_PRINTING) {
-      MENU_ITEM(submenu, MSG_TEMPERATURE, lcd_control_flow_menu);
+      MENU_ITEM(submenu, MSG_FLOW, lcd_control_flow_menu);
       #if ENABLED(FWRETRACT)
         MENU_ITEM(submenu, MSG_RETRACT, lcd_control_retract_menu);
       #endif
@@ -1377,7 +1377,7 @@ void kill_screen(const char* lcd_msg) {
         #endif
       #endif
     }
-    
+
     /*
     // Manual bed leveling, Bed Z:
     #if ENABLED(MESH_BED_LEVELING) && ENABLED(LCD_BED_LEVELING)
@@ -1469,6 +1469,15 @@ void kill_screen(const char* lcd_msg) {
       #endif
     #endif
     */
+    //
+    // Cooldown
+    //
+    bool has_heat = false;
+    HOTEND_LOOP() if (thermalManager.target_temperature[HOTEND_INDEX]) { has_heat = true; break; }
+    #if HAS_TEMP_BED
+      if (thermalManager.target_temperature_bed) has_heat = true;
+    #endif
+    if (has_heat) MENU_ITEM(function, MSG_COOLDOWN, lcd_cooldown);
     END_MENU();
   }
 
@@ -3146,7 +3155,7 @@ void kill_screen(const char* lcd_msg) {
 
   void lcd_move_menu() {
     START_MENU();
-    MENU_BACK(MSG_PREPARE);
+    MENU_BACK(MSG_TUNE);
 
     #if HAS_SOFTWARE_ENDSTOPS && ENABLED(SOFT_ENDSTOPS_MENU_ITEM)
       MENU_ITEM_EDIT(bool, MSG_LCD_SOFT_ENDSTOPS, &soft_endstops_enabled);

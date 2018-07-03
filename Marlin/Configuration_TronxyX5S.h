@@ -12,7 +12,8 @@
 #define CONFIGURATION_ADV_H_VERSION 010110
 // @motherboard section
 #ifndef MOTHERBOARD
-  #define MOTHERBOARD BOARD_MELZI
+  //#define MOTHERBOARD BOARD_MELZI currently deactivate to test on tronxy with RAMPS
+  #define MOTHERBOARD BOARD_RAMPS_14_EFB
 #endif
 
 // @thermistor section
@@ -30,18 +31,21 @@
 #define BED_MAXTEMP 150
 
 // @PID
-#define DEFAULT_Kp 22.2
-#define DEFAULT_Ki 1.08
-#define DEFAULT_Kd 114
+#define DEFAULT_Kp 17.10
+#define DEFAULT_Ki 0.83
+#define DEFAULT_Kd 87.89
 
+//#define DEFAULT_Kp 17.08
+//#define DEFAULT_Ki 0.9
+//#define DEFAULT_Kd 81.15
 // @section extruder
 
 // This option prevents extrusion if the temperature is below EXTRUDE_MINTEMP.
 // It also enables the M302 command to set the minimum extrusion temperature
 // or to allow moving the extruder regardless of the hotend temperature.
 // *** IT IS HIGHLY RECOMMENDED TO LEAVE THIS OPTION ENABLED! ***
-#define PREVENT_COLD_EXTRUSION
-#define EXTRUDE_MINTEMP 170
+//#define PREVENT_COLD_EXTRUSION
+//#define EXTRUDE_MINTEMP 170
 
 // This option prevents a single extrusion longer than EXTRUDE_MAXLENGTH.
 // Note that for Bowden Extruders a too-small value here may prevent loading.
@@ -56,7 +60,7 @@
 #define USE_XMIN_PLUG
 #define USE_YMIN_PLUG
 #define USE_ZMIN_PLUG
-// #define USE_XMAX_PLUG
+//#define USE_XMAX_PLUG
 // #define USE_YMAX_PLUG
 // #define USE_ZMAX_PLUG
 
@@ -67,7 +71,7 @@
 #define X_MAX_ENDSTOP_INVERTING true // set to true to invert the logic of the endstop.
 #define Y_MAX_ENDSTOP_INVERTING true // set to true to invert the logic of the endstop.
 #define Z_MAX_ENDSTOP_INVERTING true // set to true to invert the logic of the endstop.
-// #define Z_MIN_PROBE_ENDSTOP_INVERTING false // set to true to invert the logic of the probe.
+#define Z_MIN_PROBE_ENDSTOP_INVERTING true // set to true to invert the logic of the probe.
 
 // @section motion
 
@@ -91,14 +95,14 @@
  * Override with M92
  *                                      X, Y, Z, E0 [, E1[, E2[, E3[, E4]]]]
  */
-#define DEFAULT_AXIS_STEPS_PER_UNIT   { 80, 80, 400, 90 }
-
+#define DEFAULT_AXIS_STEPS_PER_UNIT   { 160, 160, 800, 97.544618 }
+//#define DEFAULT_AXIS_STEPS_PER_UNIT   { 160, 160, 800, 111.111111 }
 /**
  * Default Max Feed Rate (mm/s)
  * Override with M203
  *                                      X, Y, Z, E0 [, E1[, E2[, E3[, E4]]]]
  */
-#define DEFAULT_MAX_FEEDRATE          { 300, 300, 25, 70 }
+#define DEFAULT_MAX_FEEDRATE          { 400, 400, 25, 70 }
 
 /**
  * Default Max Acceleration (change/s) change = mm/s
@@ -150,7 +154,7 @@
 #define MANUAL_FEEDRATE {50*60, 50*60, 12*60, 60} // Feedrates for manual moves along X, Y, Z, E from panel
 // Homing speeds (mm/m)
 #define HOMING_FEEDRATE_XY (50*60)
-#define HOMING_FEEDRATE_Z  (10*60)
+#define HOMING_FEEDRATE_Z  (5*60)
 
 // @extruder section
 
@@ -176,8 +180,8 @@
 // @section machine
 
 // The size of the print bed
-#define X_BED_SIZE 330
-#define Y_BED_SIZE 320
+#define X_BED_SIZE 323
+#define Y_BED_SIZE 323
 
 // Travel limits (mm) after homing, corresponding to endstop positions.
 #define X_MIN_POS 0
