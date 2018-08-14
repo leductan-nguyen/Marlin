@@ -113,6 +113,9 @@
 #if ANY_THERMISTOR_IS(80) // 3DRaion Thermistor
   #include "thermistortable_80.h"
 #endif
+#if ANY_THERMISTOR_IS(81) // 3DRaion Thermistor
+  #include "thermistortable_81.h"
+#endif
 #if ANY_THERMISTOR_IS(110) // Pt100 with 1k0 pullup
   #include "thermistortable_110.h"
 #endif

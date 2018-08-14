@@ -69,6 +69,8 @@
   #define THERMISTOR_NAME "MGB18"
 #elif THERMISTOR_ID == 80
   #define THERMISTOR_NAME "RAION3D"
+#elif THERMISTOR_ID == 81
+  #define THERMISTOR_NAME "TronxyX5S"
 
 // Modified thermistors
 #elif THERMISTOR_ID == 51

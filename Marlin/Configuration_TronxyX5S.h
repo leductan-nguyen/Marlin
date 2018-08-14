@@ -18,7 +18,7 @@
 
 // @thermistor section
 
-#define TEMP_SENSOR_0 1
+#define TEMP_SENSOR_0 81
 // #define TEMP_SENSOR_1 0
 #define TEMP_SENSOR_BED 1
 
