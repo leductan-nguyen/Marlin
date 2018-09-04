@@ -47,6 +47,7 @@
 #define MSG_AUTO_HOME_X                     _UxGT("Origine X Auto.")
 #define MSG_AUTO_HOME_Y                     _UxGT("Origine Y Auto.")
 #define MSG_AUTO_HOME_Z                     _UxGT("Origine Z Auto.")
+#define MSG_TMC_Z_CALIBRATION               _UxGT("Calibrer Z")
 #define MSG_LEVEL_BED_HOMING                _UxGT("Origine XYZ")
 #define MSG_LEVEL_BED_WAITING               _UxGT("Clic pour commencer")
 #define MSG_LEVEL_BED_NEXT_POINT            _UxGT("Point suivant")
@@ -144,8 +145,7 @@
 #define MSG_UBL_STEP_BY_STEP_MENU           _UxGT("UBL Pas a pas")
 
 #define MSG_LED_CONTROL                     _UxGT("Controle LED")
-#define MSG_LEDS_ON                         _UxGT("Lumiere ON")
-#define MSG_LEDS_OFF                        _UxGT("Lumiere OFF")
+#define MSG_LEDS                            _UxGT("Lumiere")
 #define MSG_LED_PRESETS                     _UxGT("Preregl. LED.")
 #define MSG_SET_LEDS_RED                    _UxGT("Rouge")
 #define MSG_SET_LEDS_ORANGE                 _UxGT("Orange")
