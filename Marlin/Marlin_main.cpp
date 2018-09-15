@@ -7231,13 +7231,13 @@ inline void gcode_M42() {
   #if FAN_COUNT > 0
     switch (pin_number) {
       #if HAS_FAN0
-        case FAN_PIN: fanSpeeds[0] = pin_status; break;
+        case FAN_PIN: fanSpeeds[0] = (uint16_t) (pin_status / 255 * 100); break;
       #endif
       #if HAS_FAN1
-        case FAN1_PIN: fanSpeeds[1] = pin_status; break;
+        case FAN1_PIN: fanSpeeds[1] = (uint16_t) (pin_status / 255 * 100); break;
       #endif
       #if HAS_FAN2
-        case FAN2_PIN: fanSpeeds[2] = pin_status; break;
+        case FAN2_PIN: fanSpeeds[2] = (uint16_t) (pin_status / 255 * 100); break;
       #endif
     }
   #endif
@@ -7941,14 +7941,14 @@ inline void gcode_M105() {
               fanSpeeds[p] = new_fanSpeeds[p];
               break;
             default:
-              new_fanSpeeds[p] = min(t, 255);
+              new_fanSpeeds[p] = MIN(t, 100);
               break;
           }
           return;
         }
       #endif // EXTRA_FAN_SPEED
-      const uint16_t s = parser.ushortval('S', 255);
-      fanSpeeds[p] = min(s, 255);
+      const uint16_t s = parser.ushortval('S', 100);
+      fanSpeeds[p] = MIN(s, 100U);
     }
   }
 
