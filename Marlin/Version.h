@@ -71,7 +71,7 @@
    * Defines a generic printer name to be output to the LCD after booting Marlin.
    * Variable used to get the corect Configuration files of the machine
    */
-  #define MACHINE_NAME "TronxyX5S"
+  #define MACHINE_NAME "3DRaion5S"
   #define CONFIG_INCLUDE "Configuration_TronxyX5S.h"
 
   /**
