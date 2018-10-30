@@ -14736,6 +14736,10 @@ void loop() {
         #if ENABLED(POWER_LOSS_RECOVERY)
           card.removeJobRecoveryFile();
         #endif
+
+        do_blocking_move_to_z(current_position[Z] + 20);
+        homeaxis(X_AXIS);
+        homeaxis(Y_AXIS);
       }
     #endif
 
