@@ -14737,7 +14737,7 @@ void loop() {
           card.removeJobRecoveryFile();
         #endif
 
-        do_blocking_move_to_z(current_position[Z] + 20);
+        do_blocking_move_to_z(current_position[Z_AXIS] + 20);
         homeaxis(X_AXIS);
         homeaxis(Y_AXIS);
       }
