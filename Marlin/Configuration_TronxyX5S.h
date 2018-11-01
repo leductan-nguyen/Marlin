@@ -150,7 +150,7 @@
 #define X_HOME_BUMP_MM 5
 #define Y_HOME_BUMP_MM 5
 #define Z_HOME_BUMP_MM 5
-#define HOMING_BUMP_DIVISOR { 2, 2, 4 }  // Re-Bump Speed Divisor (Divides the Homing Feedrate)
+#define HOMING_BUMP_DIVISOR { 4, 4, 6 }  // Re-Bump Speed Divisor (Divides the Homing Feedrate)
 #define MANUAL_FEEDRATE {50*60, 50*60, 12*60, 60} // Feedrates for manual moves along X, Y, Z, E from panel
 // Homing speeds (mm/m)
 #define HOMING_FEEDRATE_XY (50*60)
