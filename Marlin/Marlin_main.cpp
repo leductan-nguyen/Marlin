@@ -14738,8 +14738,9 @@ void loop() {
         #endif
 
         do_blocking_move_to_z(current_position[Z_AXIS] + 20);
-        homeaxis(X_AXIS);
-        homeaxis(Y_AXIS);
+        enqueue_and_echo_commands_P(PSTR("G28X0Y0"));
+        //homeaxis(X_AXIS);
+        //homeaxis(Y_AXIS);
       }
     #endif
 
