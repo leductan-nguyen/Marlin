@@ -1557,7 +1557,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
         MENU_ITEM(submenu, MSG_BABYSTEP_Z, lcd_babystep_z);
       #endif
     #endif
-
+    */
     //
     // Change filament
     //
@@ -1571,7 +1571,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
         MENU_ITEM(submenu, MSG_FILAMENTCHANGE, lcd_change_filament_menu);
       #endif
     #endif
-    */
+    
     //
     // Cooldown
     //
