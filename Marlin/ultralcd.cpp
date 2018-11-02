@@ -327,6 +327,7 @@ uint16_t max_display_update_time = 0;
     if (_menuLineNr == _thisItemNr) { \
       if (_skipStatic && encoderLine <= _thisItemNr) { \
         encoderPosition += ENCODER_STEPS_PER_MENU_ITEM; \
+        lastEncoderPosition = encoderPosition; \
         ++encoderLine; \
       } \
       if (lcdDrawUpdate) \
@@ -425,6 +426,9 @@ uint16_t max_display_update_time = 0;
   // Encoder Movement
   volatile int8_t encoderDiff; // Updated in lcd_buttons_update, added to encoderPosition every LCD update
   uint32_t encoderPosition;
+  #if ENABLED(CONTINUOUS_MENU_SCROLL)
+    uint32_t lastEncoderPosition;
+  #endif
   millis_t lastEncoderMovementMillis = 0;
 
   // Button States
@@ -518,6 +522,7 @@ uint16_t max_display_update_time = 0;
 
       currentScreen = screen;
       encoderPosition = encoder;
+      lastEncoderPosition = encoderPosition;
       if (screen == lcd_status_screen) {
         defer_return_to_status = false;
         #if ENABLED(AUTO_BED_LEVELING_UBL)
@@ -617,6 +622,9 @@ uint16_t max_display_update_time = 0;
   void scroll_screen(const uint8_t limit, const bool is_menu) {
     ENCODER_DIRECTION_MENUS();
     ENCODER_RATE_MULTIPLY(false);
+  #if ENABLED(CONTINUOUS_MENU_SCROLL)
+    bool isGoBack = (lastEncoderPosition == 0 && encoderPosition > 0x7F9C);
+  #endif
     if (encoderPosition > 0x8000) encoderPosition = 0;
     if (first_page) {
       encoderLine = encoderPosition / (ENCODER_STEPS_PER_MENU_ITEM);
@@ -625,12 +633,19 @@ uint16_t max_display_update_time = 0;
     if (screen_items > 0 && encoderLine >= screen_items - limit) {
   #if ENABLED(CONTINUOUS_MENU_SCROLL)
       if (encoderLine >= screen_items) 
-         encoderLine = 0;
+       encoderLine = 0;  
   #else
       encoderLine = max(0, screen_items - limit);
   #endif
       encoderPosition = encoderLine * (ENCODER_STEPS_PER_MENU_ITEM);
     }
+  #if ENABLED(CONTINUOUS_MENU_SCROLL)
+    if (isGoBack) {
+      //lcd_buzz(100, 659);
+      encoderLine = screen_items - limit;
+      encoderPosition = encoderLine * (ENCODER_STEPS_PER_MENU_ITEM);
+    }
+  #endif
     if (is_menu) {
       NOMORE(encoderTopLine, encoderLine);
       if (encoderLine >= encoderTopLine + menu_bottom)
