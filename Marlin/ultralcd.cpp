@@ -3617,7 +3617,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
         #endif
       #endif
     #endif // FAN_COUNT > 0
-
+    /*
     //
     // Autotemp, Min, Max, Fact
     //
@@ -3690,7 +3690,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
       //
       MENU_ITEM(submenu, MSG_PREHEAT_2_SETTINGS, lcd_control_temperature_preheat_material2_settings_menu);
     #endif
-
+    */
     END_MENU();
   }
 
