@@ -1246,7 +1246,7 @@
   #define CONVENIENT_PAUSE_BUTTON // enable this if you want to use the kill button as a pause button
   #define ADVANCED_PAUSE_FEATURE
   #define EMERGENCY_PARSER
-  #define NOZZLE_PARK_POINT { (X_MAX_POS - 5), (Y_MAX_POS - 5), 20 }
+  #define NOZZLE_PARK_POINT { 5, 5, 20 }
   #define NOZZLE_PARK_XY_FEEDRATE 100   // X and Y axes feedrate in mm/s (also used for delta printers Z axis)
   #define NOZZLE_PARK_Z_FEEDRATE 5      // Z axis feedrate in mm/s (not used for delta printers)
 #endif

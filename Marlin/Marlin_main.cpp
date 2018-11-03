@@ -2991,7 +2991,7 @@ static void do_homing_move(const AxisEnum axis, const float distance, const floa
   #else
     sync_plan_position();
     current_position[axis] = distance; // Set delta/cartesian axes directly
-    planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], fr_mm_s ? fr_mm_s : homing_feedrate(axis), active_extruder);
+    planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], fr_mm_s ? fr_mm_s : homing_feedrate(axis) / 2, active_extruder);
   #endif
 
   planner.synchronize();
