@@ -3369,6 +3369,9 @@ inline void gcode_G0_G1(
           if (WITHIN(ABS(echange), MIN_AUTORETRACT, MAX_AUTORETRACT) && fwretract.retracted[active_extruder] == (echange > 0.0)) {
             current_position[E_AXIS] = destination[E_AXIS]; // Hide a G1-based retract/prime from calculations
             sync_plan_position_e();                         // AND from the planner
+            #if ENABLED(MANUAL_BED_SETTING)
+		      lcd_wait_for_move_manual = false;
+		    #endif
             return fwretract.retract(echange < 0.0);        // Firmware-based retract/prime (double-retract ignored)
           }
         }
@@ -3391,6 +3394,10 @@ inline void gcode_G0_G1(
         planner.synchronize();
         SERIAL_ECHOLNPGM(MSG_Z_MOVE_COMP);
       }
+    #endif
+
+    #if ENABLED(MANUAL_BED_SETTING)
+    	lcd_wait_for_move_manual = false;
     #endif
   }
 }
@@ -4295,6 +4302,10 @@ inline void gcode_G28(const bool always_home_all) {
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (DEBUGGING(LEVELING)) SERIAL_ECHOLNPGM("<<< G28");
   #endif
+
+  #if ENABLED(MANUAL_BED_SETTING)
+  	lcd_wait_for_move_manual = false;
+  #endif
 } // G28
 
 void home_all_axes() { gcode_G28(true); }
@@ -4323,6 +4334,10 @@ void home_all_axes() { gcode_G28(true); }
 
     #if ENABLED(LCD_BED_LEVELING)
       lcd_wait_for_move = false;
+    #endif
+
+    #if ENABLED(MANUAL_BED_SETTING)
+      lcd_wait_for_move_manual = false;
     #endif
   }
 

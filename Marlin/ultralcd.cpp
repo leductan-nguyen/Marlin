@@ -231,6 +231,10 @@ uint16_t max_display_update_time = 0;
     void _lcd_set_z_fade_height() { set_z_fade_height(new_z_fade_height); }
   #endif
 
+  #if ENABLED(MANUAL_BED_SETTING)
+    void _lcd_manual_bed_setting_start();
+  #endif
+
   ////////////////////////////////////////////
   //////////// Menu System Actions ///////////
   ////////////////////////////////////////////
@@ -1488,6 +1492,10 @@ void lcd_quick_feedback(const bool clear_buttons) {
           MENU_ITEM(submenu, MSG_BABYSTEP_Z, lcd_babystep_z);
         #endif
       #endif
+
+      #if ENABLED(MANUAL_BED_SETTING)
+        MENU_ITEM(function, "Manual Bed Leveling", _lcd_manual_bed_setting_start);
+      #endif
     }
 
     /*
@@ -1964,6 +1972,170 @@ void lcd_quick_feedback(const bool clear_buttons) {
     }
 
   #endif // LEVEL_BED_CORNERS
+
+  /**
+   * TODO: MANUAL BED LEVEL SETTINGS 
+  **/
+  #if ENABLED(MANUAL_BED_SETTING)
+
+    static uint8_t manual_probe_point_index;
+    bool lcd_wait_for_move_manual;
+    void _lcd_manual_bed_setting_done() {
+      lcd_goto_screen(lcd_tune_menu);
+      enqueue_and_echo_command_now(PSTR("G28"));
+    }
+
+    void _lcd_manual_bed_setting_go_to_next_point();
+
+    void _lcd_manual_bed_setting_get_z() {
+      ENCODER_DIRECTION_NORMAL();
+
+      if (use_click()) {
+
+        //
+        // Save the current Z position and move
+        //
+
+        // If done...
+        if (++manual_probe_point_index >= 9) {
+          //
+          // The last G29 records the point and enables bed leveling
+          //
+          lcd_wait_for_move_manual = true;
+          lcd_goto_screen(_lcd_manual_bed_setting_done);
+        }
+        else
+          _lcd_manual_bed_setting_go_to_next_point();
+
+        return;
+      }
+
+      //
+      // Encoder knob or keypad buttons adjust the Z position
+      //
+      if (encoderPosition) {
+        const float z = current_position[Z_AXIS] + float((int32_t)encoderPosition) * (0.025);
+        line_to_z(constrain(z, -5.f, 5.f));
+        lcdDrawUpdate = LCDVIEW_CALL_REDRAW_NEXT;
+        encoderPosition = 0;
+      }
+
+      //
+      // Draw on first display, then only on Z change
+      //
+      if (lcdDrawUpdate) {
+        const float v = current_position[Z_AXIS];
+        lcd_implementation_drawedit(PSTR(MSG_MOVE_Z), ftostr43sign(v + (v < 0 ? -0.0001f : 0.0001f), '+'));
+      }
+    }
+
+    void _lcd_manual_bed_setting_moving() {
+      if (lcdDrawUpdate) {
+        char msg[10];
+        sprintf_P(msg, PSTR("%i / %u"), (int)(manual_probe_point_index + 1), 9);
+        lcd_implementation_drawedit(PSTR(MSG_LEVEL_BED_NEXT_POINT), msg);
+      }
+      lcdDrawUpdate = LCDVIEW_CALL_NO_REDRAW;
+      if (!lcd_wait_for_move_manual) lcd_goto_screen(_lcd_manual_bed_setting_get_z);
+    }
+
+    void _lcd_manual_bed_setting_go_to_next_point() {
+       lcd_goto_screen(_lcd_manual_bed_setting_moving);
+
+      // G29 Records Z, moves, and signals when it pauses
+      lcd_wait_for_move_manual = true;
+      switch(manual_probe_point_index) {
+        case 0:
+        case 8:
+        {
+          char msg[50];
+          sprintf_P(msg, PSTR("G1Z5X%iY%i"), 15, 15);
+          enqueue_and_echo_command_now(msg);
+          break;
+        }
+        case 1:
+        {
+          char msg[50];
+          sprintf_P(msg, PSTR("G1Z5X%iY%i"), X_MAX_POS / 2, 15);
+          enqueue_and_echo_command_now(msg);
+          break;
+        }
+        case 2:
+        {
+          char msg[50];
+          sprintf_P(msg, PSTR("G1Z5X%iY%i"), X_MAX_POS - 15 , 15);
+          enqueue_and_echo_command_now(msg);
+          break;
+        }
+        case 3:
+        {
+          char msg[50];
+          sprintf_P(msg, PSTR("G1Z5X%iY%i"), X_MAX_POS - 15 , Y_MAX_POS / 2);
+          enqueue_and_echo_command_now(msg);
+          break;
+        }
+        case 4:
+        {
+          char msg[50];
+          sprintf_P(msg, PSTR("G1Z5X%iY%i"), X_MAX_POS - 15 , Y_MAX_POS - 15);
+          enqueue_and_echo_command_now(msg);
+          break;
+        }
+        case 5:
+        {
+          char msg[50];
+          sprintf_P(msg, PSTR("G1Z5X%iY%i"), X_MAX_POS / 2 , Y_MAX_POS - 15);
+          enqueue_and_echo_command_now(msg);
+          break;
+        }
+        case 6:
+        {
+          char msg[50];
+          sprintf_P(msg, PSTR("G1Z5X%iY%i"), 15 , Y_MAX_POS - 15);
+          enqueue_and_echo_command_now(msg);
+          break;
+        }
+        case 7:
+        {
+          char msg[50];
+          sprintf_P(msg, PSTR("G1Z5X%iY%i"), 15, Y_MAX_POS / 2);
+          enqueue_and_echo_command_now(msg);
+          break;
+        }
+      }
+    }
+
+    /**
+     * Step 4: Display "Click to Begin", wait for click
+     *         Move to the first probe position
+     */
+    void _lcd_manual_bed_setting_homing_done() {
+      if (lcdDrawUpdate) lcd_implementation_drawedit(PSTR(MSG_LEVEL_BED_WAITING));
+      if (use_click()) {
+        manual_probe_point_index = 0;
+        _lcd_manual_bed_setting_go_to_next_point();
+      }
+    }
+
+    /**
+     * Step 3: Display "Homing XYZ" - Wait for homing to finish
+     */
+    void _lcd_manual_bed_setting_homing() {
+      if (lcdDrawUpdate) lcd_implementation_drawedit(PSTR(MSG_LEVEL_BED_HOMING), NULL);
+      lcdDrawUpdate = LCDVIEW_CALL_NO_REDRAW;
+      if (all_axes_homed()) lcd_goto_screen(_lcd_manual_bed_setting_homing_done);
+    }
+
+    /**
+     * Step 2: Start manual bed settings...
+     */
+    void _lcd_manual_bed_setting_start() {
+      defer_return_to_status = true;
+      manual_probe_point_index = 0;
+      lcd_goto_screen(_lcd_manual_bed_setting_homing); 
+      enqueue_and_echo_command_now("G28");  
+    }
+  #endif // MANUAL_BED_SETTING
 
   #if ENABLED(LCD_BED_LEVELING) && (ENABLED(PROBE_MANUALLY) || ENABLED(MESH_BED_LEVELING))
 
