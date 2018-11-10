@@ -109,6 +109,12 @@
       constexpr bool lcd_wait_for_move = false;
     #endif
 
+    #if ENABLED(MANUAL_BED_SETTING)
+      extern bool lcd_wait_for_move_manual;
+    #else
+      constexpr bool lcd_wait_for_move_manual = false;
+    #endif
+
     void lcd_goto_screen(screenFunc_t screen, const uint32_t encoder=0);
 
     void lcd_completion_feedback(const bool good=true);
@@ -199,6 +205,7 @@
 #else // MALYAN_LCD or no LCD
 
   constexpr bool lcd_wait_for_move = false;
+  constexpr bool lcd_wait_for_move_manual = false;
 
   inline void lcd_refresh() {}
   inline bool lcd_hasstatus() { return false; }
