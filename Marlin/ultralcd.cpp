@@ -526,7 +526,7 @@ uint16_t max_display_update_time = 0;
 
       currentScreen = screen;
       encoderPosition = encoder;
-      lastEncoderPosition = encoderPosition;
+      lastEncoderPosition = 0;
       if (screen == lcd_status_screen) {
         defer_return_to_status = false;
         #if ENABLED(AUTO_BED_LEVELING_UBL)
@@ -627,7 +627,7 @@ uint16_t max_display_update_time = 0;
     ENCODER_DIRECTION_MENUS();
     ENCODER_RATE_MULTIPLY(false);
   #if ENABLED(CONTINUOUS_MENU_SCROLL)
-    bool isGoBack = (lastEncoderPosition == 0 && encoderPosition > 0x7F9C);
+    bool isGoBack = (lastEncoderPosition == 0 && encoderPosition > 0x2000);
   #endif
     if (encoderPosition > 0x8000) encoderPosition = 0;
     if (first_page) {

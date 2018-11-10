@@ -6742,7 +6742,8 @@ inline void gcode_M17() {
         planner.retract_acceleration = FILAMENT_CHANGE_FAST_LOAD_ACCEL;
       #endif
 
-      do_pause_e_move(fast_load_length, FILAMENT_CHANGE_FAST_LOAD_FEEDRATE);
+      do_pause_e_move(fast_load_length * 4 / 5, FILAMENT_CHANGE_FAST_LOAD_FEEDRATE);
+      do_pause_e_move(fast_load_length / 5, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE);
 
       #if FILAMENT_CHANGE_FAST_LOAD_ACCEL > 0
         planner.retract_acceleration = saved_acceleration;
@@ -6844,7 +6845,9 @@ inline void gcode_M17() {
       planner.retract_acceleration = FILAMENT_CHANGE_UNLOAD_ACCEL;
     #endif
 
-    do_pause_e_move(unload_length, FILAMENT_CHANGE_UNLOAD_FEEDRATE);
+    do_pause_e_move(unload_length / 5, FILAMENT_CHANGE_UNLOAD_SLOW_FEEDRATE);
+
+    do_pause_e_move(unload_length * 4 / 5, FILAMENT_CHANGE_UNLOAD_FEEDRATE);
 
     #if FILAMENT_CHANGE_FAST_LOAD_ACCEL > 0
       planner.retract_acceleration = saved_acceleration;
