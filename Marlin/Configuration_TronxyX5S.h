@@ -26,9 +26,10 @@
 // #define HEATER_1_MINTEMP 5
 #define BED_MINTEMP 5
 
+// Temperature displayed on LCD will equal (max_temp - 15°)
 #define HEATER_0_MAXTEMP 275
 // #define HEATER_1_MAXTEMP 275
-#define BED_MAXTEMP 150
+#define BED_MAXTEMP 105
 
 // @PID
 #define DEFAULT_Kp 17.10
